@@ -1,10 +1,10 @@
-const pokeCard = document.querySelector('data-poke-card');
-const pokeName = document.querySelector('data-poke-name');
-const pokeImg = document.querySelector('data-poke-img');
-const pokeImgContainer = document.querySelector('data-poke-img-container');
-const pokeId = document.querySelector('data-poke-id');
-const pokeTypes = document.querySelector('data-poke-types');
-const pokeStarts = document.querySelector('data-poke-starts');
+const pokeCard = document.querySelector('[data-poke-card]');
+const pokeName = document.querySelector('[data-poke-name]');
+const pokeImg = document.querySelector('[data-poke-img]');
+const pokeImgContainer = document.querySelector('[data-poke-img-container]');
+const pokeId = document.querySelector('[data-poke-id]');
+const pokeTypes = document.querySelector('[data-poke-types]');
+const pokeStats = document.querySelector('[data-poke-stats]');
 
 const typeColors = {
     electric: '#FFEA70',
@@ -24,23 +24,67 @@ const typeColors = {
     steel: '#1D8A99',
     fighting: '#2F2F2F',
     default: '#2A1A1F',
-}
+};
 
-const searchPokemon = event => {
+const searchPokemon = event => { //llamamos la api
     event.preventDefault();
     const { value } = event.target.pokemon;
     fetch(`https://pokeapi.co/api/v2/pokemon/${value.toLowerCase()}`)
         .then(data => data.json())
         .then(response => renderPokemonData(response))
+        .catch(err => renderNotFound())
 }
 
-const renderPokemonData = data => {
+const renderPokemonData = data => { //seleccionamos el sprite nombre y numero
     const sprite = data.sprites.front_default;
     const { stats, types } = data;
 
     pokeName.textContent = data.name;
     pokeImg.setAttribute('src', sprite);
-    pokeId.textContent = 'N° ${data.id}';
+    pokeId.textContent = `Nº ${data.id}`;
+    setCardColor(types);
+    renderPokemonTypes(types);
+    renderPokemonStats(stats);
+}
 
-    
+const setCardColor = types => { // llamamos al color segun su tipo
+    const colorOne = typeColors[types[0].type.name]; //1re color
+    const colorTwo = types[1] ? typeColors[types[1].type.name] : typeColors.default; //2do color si es que lo tiene si no default
+    pokeImg.style.background = `radial-gradient(${colorTwo} 33%, ${colorOne} 33%)`; //como se vera el color del fondo principal el 2do color  
+    pokeImg.style.backgroundSize = '5px 5px';
+}
+
+const renderPokemonTypes = types => {
+    pokeTypes.innerHTML = '';
+    types.forEach(type => {
+        const typeTextElement = document.createElement("div"); //creamos un div para los tipos
+        typeTextElement.style.color = typeColors[type.type.name]; //colocamos el color segun el tipo
+        typeTextElement.textContent = type.type.name;
+        pokeTypes.appendChild(typeTextElement);
+    });
+}
+
+const renderPokemonStats = stats => {
+    pokeStats.innerHTML = '';
+    stats.forEach(stat => {
+        const statElement = document.createElement("div");
+        const statElementName = document.createElement("div");
+        const statElementAmount = document.createElement("div");
+        statElementName.textContent = stat.stat.name;
+        statElementAmount.textContent = stat.base_stat;
+        statElement.appendChild(statElementName);
+        statElement.appendChild(statElementAmount);
+        pokeStats.appendChild(statElement);
+    });
+
+
+}
+
+const renderNotFound = () => {
+    pokeName.textContent = 'No encontrado';
+    pokeImg.setAttribute('src', 'sombrapokemon.png');
+    pokeImg.style.background = '#fff';
+    pokeTypes.innerHTML = '';
+    pokeStats.innerHTML = '';
+    pokeId.textContent = '';
 }
